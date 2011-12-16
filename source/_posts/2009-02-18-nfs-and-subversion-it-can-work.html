@@ -1,0 +1,20 @@
+--- 
+layout: post
+title: NFS and Subversion, it can work!
+tags: 
+- IT
+- Linux
+- nfs
+- svn
+status: publish
+type: post
+published: true
+meta: 
+  _edit_last: "2"
+---
+<div>
+<p>There are a lot of blogs and articles out there about SVN and NFS. You can search google and easily find a lot of information about them. But I never found anybody that felt like they found a definitive answer.</p>
+<p>In my case I kept getting an error about not being able to find and available lock, the error looks something like <code>svn: Can't get exclusive lock on file '/repo/db/write-lock': No locks available </code> It turns out it is actually pretty easy to fix. And for those that don't want to read further, all you have to do is add the nolock option to your nfs mount. My fstab entry now looks like this<code>192.168.1.154:/volume1/svn	/media/svn	nfs	rw,nfsvers=3,nolock	0 0</code>. That's all I use, and now my svn is working over nfs, safely I might add.</p>
+<p>For those looking for a bit more explanation (which is what I couldn't find). SVN dev's prefer you not to use the Berkeley DB over NFS. So make sure you are running a new enough SVN so it uses the FSFS backend not the BDB.  The next, it is my  understanding that SVN uses file locks to protect the files during checkout and checkin, to prevent them from being over written. NFS uses NLM locking and it is used so that all clients of that nfs export no about the file lock. Apparently subversion is compatible with this locking mechanism. Adding the nolock option to the mount point as the client uses a more basic locking mechanism that only provides protection only form programs running on that machine.</p>
+<p>What does all this mean, it means I am able to mount my svn share on a nfs export, but only that one machine can really access this export to guarantee consistency in our repository. You do lose some of the benefits of it being over an NFS share, you couldn't do any type of load balancing over multiple SVN frontend servers, but it does allow our NAS to hold our repository and puts me one step closer to consolidating our storage.</p>
+<p>While I didn't provide a new answer, I am providing the reasoning behind the answer as I can see it. Something I couldn't find out there on the Internet.</p></div>

@@ -1,0 +1,31 @@
+--- 
+layout: post
+title: SHMConfig enabled synaptics through HAL
+tags: 
+- Linux
+status: publish
+type: post
+published: true
+meta: 
+  _edit_last: "2"
+---
+<div>
+<p>Finally I got my synaptics drivers to work properly.  With the new HAL, you are able to have it hotplug your input devices into X, this means they don't need to be listed in X.  I tested this out on my laptop a few months ago, and it worked.  Only problem is I couldn't pass along the variables for my synaptics touchpad. Well, after months of waiting and research, I finally got it figured out.</p>
+<p>I created the file /etc/hal/fdi/policy/11-synaptic-options.fdi, which, in Gentoo, are the user added hal policies, system installed are in /usr/share/hal/fdi/policy/.  I then added the following into that file</p>
+<p><code><br />
+&lt;?xml version="1.0" encoding="ISO-8859-1"?&gt;<br />
+&lt;deviceinfo version="0.2"&gt;<br />
+&lt;device&gt;<br />
+&lt;match key="input.x11_driver" contains="synaptics"&gt;<br />
+&lt;merge key="input.x11_options.SHMConfig" type="string"&gt;On&lt;/merge&gt;<br />
+&lt;/match&gt;<br />
+&lt;/device&gt;<br />
+&lt;/deviceinfo&gt;<br />
+</code></p>
+<p>This turns on SHMConfig which allows synclient and gsynaptics to change synaptic settings on the fly.  Sadly, in between noticing this taking effect I had moved to a few pre-release applications to get the 3d r500 accelleration with ati drivers.  Below are a few application and versions I am running</p>
+<p><code><br />
+[ebuild   R   ] sys-apps/hal-0.5.11-r1  <br />
+[ebuild   R   ] x11-base/xorg-server-1.4.99.906  <br />
+[ebuild   R   ] x11-drivers/synaptics-0.14.6-r4 <br />
+</code></p>
+<p>Also note, i just notice xf86-input-synaptic-0.15* has been added to the portage tree for the 1.5 prerelease, need to check this out.</p></div>

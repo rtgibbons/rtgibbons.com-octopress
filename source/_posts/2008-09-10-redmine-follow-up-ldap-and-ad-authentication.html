@@ -1,0 +1,17 @@
+--- 
+layout: post
+title: Redmine Follow Up - LDAP and AD Authentication
+tags: 
+- Technology
+status: publish
+type: post
+published: true
+meta: {}
+
+---
+<div>
+<p>In a <a href="http://gibbonsr.net/index.php/tech/web/redmine-lean-and-powerfule-project-manag">previous post about Redmine</a> I mentioned that I was having problems with LDAP and 2003 Active Directory authentication.  Now I considered myself to have a fair amount of LDAP and Active Directory experience.  I have set up samba PD and set up PAM to auth against LDAP.  Even to grab user credentials.  I've written scripts to pull users from ldap for initial setups in other applications, etc, etc.  But for the life of me I couldn't get redmine to auth against AD.</p>
+<p>I probalby spent about 5 hours debugging Redmien to find the error. I had logger.info lines all over the place (I'm a ruby newbie), I'm debugging the mysql queries, if statements, everything I can think of.  After 1) understanding Redmine and 2) understanding ruby, I was able to start norrowing it down.  The SQL queries were fine, the initial ldap bind was fine, but it was authenticating.  </p>
+<p>I ended up finding out that the problem was with the ldap_conn.search() fucntion.  I wasn't executing correcting.  They seemed to using it as kind of an if statement, so I was trying to ouput the status, but wasn't getting anything.  I thought this was my lack of knowledge of ruby.  I forced the ldap_bind to fail, so I know for a fact the ldap_conn.search would fail, and it did, but this time it would return false.  But when everything else seemed to work find, ldap_conn.search would return nothing.  I was stumped.  I had no clue what to do.  I went home that day feeling defeated.  I talked to Brian and he made fun of me, like any good friend should, and told me it was user error.  I laughed him off and went on my.  Next day at work though ended up proving him right.  I ended gettign the bright idea to cdump out all the variables being used.  I read that when the ldap search function was giving a filter string that was the written out the way it wants, it silently fails.  I looked through them all, and they all looked okay, fiddling with them for a bit didn't do anything. Then I dumped them again , and it hit me, like a pallet of falling bricks .. yes it hurt as bad also.</p>
+<p>My username field for the ldap search as set to sAMAccountName , what you can't tell from this is that it was actually 'sAMAccountName ', with a space at the end.  So the filter ws being set to sAMAccountName =ryan.gibbons.  While you would think this might work, it doesn't, but whats worse is that redmine let this pass, and ruby-net-ldap didn't doesn't handle invalid filters at all.  Hence <a href="http://gibbonsr.net/index.php/tech/data-cleansing">my post below about Data Cleansing</a>.</p>
+<p>So hopefully this post will help others out there having similar issues. I've learned my lesson for the week, only question is how long will I remember it. Tomorrow I will go submit a bug to hopefully have this error fixed. Yes even computer nerds and programs fall victim to PEBKAC.</p></div>
